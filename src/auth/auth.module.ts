@@ -11,7 +11,7 @@ import { JwtStrategy } from './jwt.strategy';
   imports: [
     TypeOrmModule.forFeature([UserEntity]),
     JwtModule.register({
-      secret: 'supadupasecretkey',
+      secret: process.env.JWT_SECRET,
       signOptions: {
         expiresIn: '7d',
       },
