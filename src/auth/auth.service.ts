@@ -21,10 +21,6 @@ export class AuthService {
     try {
       const user: UserEntity = this.userRepo.create(credentials);
       await user.save();
-      const payload: AuthPayload = {
-        sub: user.id,
-        username: user.username,
-      };
       return { user: this.signFromUser(user) };
     } catch (err) {
       if (err.code === 'ER_DUP_ENTRY') {
