@@ -21,7 +21,11 @@ export class AuthService {
     try {
       const user: UserEntity = this.userRepo.create(credentials);
       await user.save();
-      return user;
+      const payload: AuthPayload = {
+        sub: user.id,
+        username: user.username,
+      };
+      return { user: this.signFromUser(user) };
     } catch (err) {
       if (err.code === 'ER_DUP_ENTRY') {
         throw new ConflictException('Username has already been taken');
@@ -36,17 +40,21 @@ export class AuthService {
       if (user) {
         const isVaid = await user.comparePassword(password);
         if (isVaid) {
-          const payload: AuthPayload = {
-            sub: user.id,
-            username: user.username,
-          };
-          const token = this.jwtService.sign(payload);
-          return { user: { ...user.toJSON(), token } };
+          return { user: this.signFromUser(user) };
         }
       }
       throw new UnauthorizedException('Invalid email or password');
     } catch (err) {
       throw err;
     }
+  }
+
+  signFromUser(user: UserEntity) {
+    const payload: AuthPayload = {
+      sub: user.id,
+      username: user.username,
+    };
+    const token = this.jwtService.sign(payload);
+    return { ...user.toJSON(), token };
   }
 }

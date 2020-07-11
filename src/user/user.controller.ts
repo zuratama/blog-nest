@@ -6,28 +6,34 @@ import {
   Body,
   ValidationPipe,
 } from '@nestjs/common';
-import { AuthGuard } from '@nestjs/passport';
 import { UserService } from './user.service';
 import { User } from 'src/auth/user.decorator';
-import { ValidUser, UpdateUserDTO } from 'src/models/user.dto';
+import { UpdateUserDTO } from 'src/models/user.dto';
+import { UserEntity } from 'src/entities/user.entity';
+import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
+import { AuthService } from 'src/auth/auth.service';
 
 @Controller('user')
 export class UserController {
-  constructor(private readonly userService: UserService) {}
+  constructor(
+    private readonly userService: UserService,
+    private readonly authService: AuthService,
+  ) {}
 
   @Get()
-  @UseGuards(AuthGuard('jwt'))
-  findCurrentUser(@User() { username }: ValidUser) {
-    return this.userService.findByUsername(username);
+  @UseGuards(JwtAuthGuard)
+  async findCurrentUser(@User() user: UserEntity) {
+    return { user: this.authService.signFromUser(user) };
   }
 
   @Put()
-  @UseGuards(AuthGuard('jwt'))
-  update(
-    @User() { id }: ValidUser,
+  @UseGuards(JwtAuthGuard)
+  async update(
+    @User() { id }: UserEntity,
     @Body(new ValidationPipe({ transform: true, whitelist: true }))
     data: UpdateUserDTO,
   ) {
-    return this.userService.updateUser(id, data);
+    const user = await this.userService.updateUser(id, data);
+    return { user: this.authService.signFromUser(user) };
   }
 }

@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { UserEntity } from 'src/entities/user.entity';
@@ -10,8 +10,18 @@ export class UserService {
     @InjectRepository(UserEntity) private userRepo: Repository<UserEntity>,
   ) {}
 
-  async findByUsername(username: string): Promise<UserEntity> {
-    return this.userRepo.findOne({ where: { username } });
+  async findByUsername(
+    username: string,
+    currentUser?: UserEntity,
+  ): Promise<UserEntity> {
+    const user = await this.userRepo.findOne({
+      where: { username },
+      relations: ['followers'],
+    });
+    if (!user) {
+      throw new NotFoundException();
+    }
+    return user.toProfile(currentUser);
   }
 
   async findById(id: number): Promise<UserEntity> {
@@ -23,29 +33,29 @@ export class UserService {
     return this.findById(id);
   }
 
-  async followUser(actorUserId: number, targetUsername: string) {
-    const actorUser = await this.userRepo.findOne({
-      where: { id: actorUserId },
-    });
+  async followUser(actorUser: UserEntity, targetUsername: string) {
     const targetUser = await this.userRepo.findOne({
       where: { username: targetUsername },
       relations: ['followers'],
     });
+    if (!targetUser) {
+      throw new NotFoundException();
+    }
     targetUser.followers.push(actorUser);
     await targetUser.save();
     return targetUser.toProfile(actorUser);
   }
 
-  async unfollowUser(actorUserId: number, targetUsername: string) {
-    const actorUser = await this.userRepo.findOne({
-      where: { id: actorUserId },
-    });
+  async unfollowUser(actorUser: UserEntity, targetUsername: string) {
     const targetUser = await this.userRepo.findOne({
       where: { username: targetUsername },
       relations: ['followers'],
     });
+    if (!targetUser) {
+      throw new NotFoundException();
+    }
     targetUser.followers = targetUser.followers.filter(
-      user => user !== actorUser,
+      user => user.id !== actorUser.id,
     );
     await targetUser.save();
     return targetUser.toProfile(actorUser);
