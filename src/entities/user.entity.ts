@@ -1,8 +1,8 @@
-import { AbstractEntity } from './abstract-entity';
-import { Entity, Column, BeforeInsert } from 'typeorm';
+import { Entity, Column, BeforeInsert, JoinTable, ManyToMany } from 'typeorm';
 import { Exclude, classToPlain } from 'class-transformer';
 import { IsEmail } from 'class-validator';
 import * as bcrypt from 'bcryptjs';
+import { AbstractEntity } from './abstract-entity';
 
 @Entity('user')
 export class UserEntity extends AbstractEntity {
@@ -23,6 +23,20 @@ export class UserEntity extends AbstractEntity {
   @Column({ default: null, nullable: true })
   image: string | null;
 
+  @JoinTable()
+  @ManyToMany(
+    type => UserEntity,
+    user => user.followees,
+  )
+  followers: UserEntity[];
+
+  @JoinTable()
+  @ManyToMany(
+    type => UserEntity,
+    user => user.followers,
+  )
+  followees: UserEntity[];
+
   // TODO: add following
 
   @BeforeInsert()
@@ -36,5 +50,12 @@ export class UserEntity extends AbstractEntity {
 
   toJSON() {
     return classToPlain(this);
+  }
+
+  toProfile(user: UserEntity) {
+    const following = this.followers.includes(user);
+    const profile: any = this.toJSON();
+    delete profile.followers;
+    return { ...profile, following };
   }
 }
