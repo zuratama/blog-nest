@@ -1,16 +1,9 @@
-import {
-  Entity,
-  Column,
-  BeforeInsert,
-  ManyToOne,
-  ManyToMany,
-  RelationCount,
-  JoinTable,
-} from 'typeorm';
+import { Entity, Column, BeforeInsert, ManyToOne } from 'typeorm';
 import * as slugify from 'slug';
 import { AbstractEntity } from './abstract-entity';
 import { UserEntity } from './user.entity';
 import { classToPlain } from 'class-transformer';
+import { ArticleData } from 'src/models/article.models';
 
 @Entity('article')
 export class ArticleEntity extends AbstractEntity {
@@ -28,19 +21,12 @@ export class ArticleEntity extends AbstractEntity {
 
   @ManyToOne(
     _type => UserEntity,
-    user => user.article,
+    user => user.articles,
     { eager: true },
   )
   author: UserEntity;
 
-  @ManyToMany(
-    _type => UserEntity,
-    user => user.favorites,
-    { eager: true },
-  )
-  favoritedBy: UserEntity[];
-
-  @RelationCount((article: ArticleEntity) => article.favoritedBy)
+  @Column({ default: 0 })
   favoritesCount: number;
 
   @Column('simple-array')
@@ -58,13 +44,12 @@ export class ArticleEntity extends AbstractEntity {
     return classToPlain(this);
   }
 
-  toArticle(user: UserEntity) {
+  toArticle(user?: UserEntity): ArticleData {
     let favorited = null;
     if (user) {
-      favorited = this.favoritedBy.includes(user);
+      favorited = user.favorites.findIndex(a => a.id === this.id);
     }
     const article: any = this.toJSON();
-    delete article.favoritedBy;
     return { ...article, favorited };
   }
 }

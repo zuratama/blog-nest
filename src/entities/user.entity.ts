@@ -50,12 +50,9 @@ export class UserEntity extends AbstractEntity {
     _type => ArticleEntity,
     article => article.author,
   )
-  article: ArticleEntity;
+  articles: ArticleEntity[];
 
-  @ManyToMany(
-    _type => ArticleEntity,
-    article => article.favoritedBy,
-  )
+  @ManyToMany(_type => ArticleEntity)
   @JoinTable()
   favorites: ArticleEntity[];
 
