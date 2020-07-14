@@ -2,7 +2,6 @@ import {
   Controller,
   Get,
   Param,
-  NotFoundException,
   Post,
   UseGuards,
   Delete,
@@ -13,6 +12,7 @@ import { User } from 'src/auth/user.decorator';
 import { OptionalAuthGuard } from 'src/auth/optional-auth.guard';
 import { UserEntity } from 'src/entities/user.entity';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
+import { ProfileRO } from 'src/models/user.models';
 
 @Controller('profiles')
 export class ProfileController {
@@ -23,13 +23,8 @@ export class ProfileController {
   async findProfile(
     @User() currentUser: UserEntity,
     @Param('username') username: string,
-  ) {
-    const profile = await this.userService.findByUsername(
-      username,
-      currentUser,
-    );
-
-    return { profile };
+  ): Promise<ProfileRO> {
+    return this.userService.getFromUsername(username, currentUser);
   }
 
   @Post('/:username/follow')
@@ -38,9 +33,8 @@ export class ProfileController {
   async followUser(
     @User() currentUser: UserEntity,
     @Param('username') username: string,
-  ) {
-    const profile = await this.userService.followUser(currentUser, username);
-    return { profile };
+  ): Promise<ProfileRO> {
+    return this.userService.followUser(currentUser, username);
   }
 
   @Delete('/:username/follow')
@@ -49,8 +43,7 @@ export class ProfileController {
   async unfollowUser(
     @Param('username') username: string,
     @User() currentUser: UserEntity,
-  ) {
-    const profile = await this.userService.unfollowUser(currentUser, username);
-    return { profile };
+  ): Promise<ProfileRO> {
+    return this.userService.unfollowUser(currentUser, username);
   }
 }

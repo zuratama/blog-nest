@@ -5,13 +5,13 @@ import {
   JoinTable,
   ManyToMany,
   OneToMany,
-  JoinColumn,
 } from 'typeorm';
 import { Exclude, classToPlain } from 'class-transformer';
 import { IsEmail } from 'class-validator';
 import * as bcrypt from 'bcryptjs';
 import { AbstractEntity } from './abstract-entity';
 import { ArticleEntity } from './article.entity';
+import { ProfileData } from 'src/models/user.models';
 
 @Entity('user')
 export class UserEntity extends AbstractEntity {
@@ -39,7 +39,6 @@ export class UserEntity extends AbstractEntity {
   )
   followers: UserEntity[];
 
-  @JoinTable()
   @ManyToMany(
     _type => UserEntity,
     user => user.followers,
@@ -56,7 +55,6 @@ export class UserEntity extends AbstractEntity {
   @JoinTable()
   favorites: ArticleEntity[];
 
-  // TODO: add following
   @BeforeInsert()
   async hashPassword() {
     this.password = await bcrypt.hash(this.password, 10);
@@ -70,10 +68,10 @@ export class UserEntity extends AbstractEntity {
     return classToPlain(this);
   }
 
-  toProfile(user?: UserEntity) {
+  toProfile(user?: UserEntity): ProfileData {
     let following = null;
     if (user) {
-      following = this.followers.includes(user);
+      following = this.followers.findIndex(u => u.id === user.id) >= 0;
     }
     const profile: any = this.toJSON();
     delete profile.followers;

@@ -8,7 +8,13 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { JwtService } from '@nestjs/jwt';
 import { UserEntity } from 'src/entities/user.entity';
-import { LoginDTO, RegisterDTO, AuthPayload } from 'src/models/user.models';
+import {
+  LoginDTO,
+  RegisterDTO,
+  AuthPayload,
+  UserRO,
+  UpdateUserDTO,
+} from 'src/models/user.models';
 
 @Injectable()
 export class AuthService {
@@ -45,7 +51,17 @@ export class AuthService {
     }
   }
 
-  signFromUser(user: UserEntity) {
+  async update(user: UserEntity, data: UpdateUserDTO): Promise<UserRO> {
+    await this.userRepo.update({ id: user.id }, data);
+    const updated = await this.userRepo.findOne({ where: { id: user.id } });
+    return { user: this.signFromUser(updated) };
+  }
+
+  get(currUser: UserEntity): UserRO {
+    return { user: this.signFromUser(currUser) };
+  }
+
+  private signFromUser(user: UserEntity): any {
     const payload: AuthPayload = {
       sub: user.id,
       username: user.username,

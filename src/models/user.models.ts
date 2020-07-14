@@ -41,14 +41,25 @@ export interface AuthPayload {
   username: string;
 }
 
-export interface UserData {
+interface UserSharedData {
   username: string;
-  email: string;
-  token: string;
   bio: string;
   image?: string;
 }
 
+export interface UserData extends UserSharedData {
+  email: string;
+  token: string;
+}
+
 export interface UserRO {
   user: UserData;
+}
+
+export interface ProfileData extends UserSharedData {
+  following?: boolean;
+}
+
+export interface ProfileRO {
+  profile: ProfileData;
 }
