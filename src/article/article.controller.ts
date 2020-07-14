@@ -90,4 +90,22 @@ export class ArticleController {
     const article = await this.articleService.deleteArticle(user, slug);
     return { article };
   }
+
+  @Post('/:slug/favorite')
+  @UseGuards(JwtAuthGuard)
+  async favoriteArticle(
+    @User() user: UserEntity,
+    @Param('slug') slug: string,
+  ): Promise<ArticleRO> {
+    return this.articleService.favorite(user, slug);
+  }
+
+  @Delete('/:slug/favorite')
+  @UseGuards(JwtAuthGuard)
+  async unfavoriteArticle(
+    @User() user: UserEntity,
+    @Param('slug') slug: string,
+  ): Promise<ArticleRO> {
+    return this.articleService.unfavorite(user, slug);
+  }
 }

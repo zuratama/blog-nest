@@ -1,8 +1,8 @@
 import { Entity, Column, BeforeInsert, ManyToOne } from 'typeorm';
 import * as slugify from 'slug';
+import { classToPlain } from 'class-transformer';
 import { AbstractEntity } from './abstract-entity';
 import { UserEntity } from './user.entity';
-import { classToPlain } from 'class-transformer';
 import { ArticleData } from 'src/models/article.models';
 
 @Entity('article')
@@ -47,7 +47,7 @@ export class ArticleEntity extends AbstractEntity {
   toArticle(user?: UserEntity): ArticleData {
     let favorited = null;
     if (user) {
-      favorited = user.favorites.findIndex(a => a.id === this.id);
+      favorited = user.favorites.findIndex(a => a.id === this.id) != -1;
     }
     const article: any = this.toJSON();
     return { ...article, favorited };

@@ -13,6 +13,7 @@ import {
   FindAllQuery,
   FindFeedQuery,
   ArticlesRO,
+  ArticleRO,
 } from 'src/models/article.models';
 
 @Injectable()
@@ -58,16 +59,21 @@ export class ArticleService {
       const author = await this.userRepo.findOne({
         username: query.author,
       });
-      const id = author ? author.id : 0;
+      let id = 0;
+      if (author) {
+        id = author.id;
+      }
       qb.andWhere('article.authorId = :id', { id });
     }
 
     if (query.favorited) {
-      let target = await this.userRepo.findOne({
+      const target = await this.userRepo.findOne({
         username: query.favorited,
       });
-      const favorites = target ? target.favorites : [];
-      const ids = favorites.length ? favorites.map(article => article.id) : [0];
+      let ids = [0];
+      if (target && target.favorites.length >= 0) {
+        ids = target.favorites.map(article => article.id);
+      }
       qb.andWhere('article.authorId IN (:ids)', { ids });
     }
 
@@ -98,7 +104,6 @@ export class ArticleService {
     }
 
     let ids = followees.map(u => u.id);
-    ids = ids.length ? ids : [0];
     const qb = await this.articleRepo
       .createQueryBuilder('article')
       .where('article.authorId IN (:ids)', { ids });
@@ -145,6 +150,51 @@ export class ArticleService {
     }
 
     throw new UnauthorizedException();
+  }
+
+  async favorite(user: UserEntity, slug: string): Promise<ArticleRO> {
+    let article = await this.findBySlug(slug);
+    if (!article) {
+      throw new NotFoundException('Article not found');
+    }
+
+    const relationUser = await this.userRepo.findOne({
+      where: { id: user.id },
+      relations: ['favorites'],
+    });
+    const isFirstFav =
+      relationUser.favorites.findIndex(a => a.id === article.id) < 0;
+    if (isFirstFav) {
+      relationUser.favorites.push(article);
+      article.favoritesCount++;
+      await relationUser.save();
+      article = await article.save();
+    }
+
+    return { article: article.toArticle(relationUser) };
+  }
+
+  async unfavorite(user: UserEntity, slug: string): Promise<ArticleRO> {
+    let article = await this.findBySlug(slug);
+    if (!article) {
+      throw new NotFoundException('Article not found');
+    }
+
+    const relationUser = await this.userRepo.findOne({
+      where: { id: user.id },
+      relations: ['favorites'],
+    });
+    const unfavIndex = relationUser.favorites.findIndex(
+      a => a.id === article.id,
+    );
+    if (unfavIndex >= 0) {
+      relationUser.favorites.splice(unfavIndex, 1);
+      article.favoritesCount--;
+      await relationUser.save();
+      article = await article.save();
+    }
+
+    return { article: article.toArticle(relationUser) };
   }
 
   private ensureOwnership(user: UserEntity, article: ArticleEntity): boolean {
