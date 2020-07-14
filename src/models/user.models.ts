@@ -41,7 +41,14 @@ export interface AuthPayload {
   username: string;
 }
 
-export interface ValidUser {
-  id: number;
+export interface UserData {
   username: string;
+  email: string;
+  token: string;
+  bio: string;
+  image?: string;
+}
+
+export interface UserRO {
+  user: UserData;
 }

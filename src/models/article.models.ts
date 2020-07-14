@@ -1,6 +1,5 @@
-import { IsString, IsArray, IsOptional } from 'class-validator';
-import { ArticleEntity } from 'src/entities/article.entity';
-import { UserEntity } from 'src/entities/user.entity';
+import { IsArray, IsOptional, IsString } from 'class-validator';
+import { UserData } from './user.models';
 
 export class CreateArticleDTO {
   @IsString()
@@ -56,7 +55,7 @@ export interface ArticleData {
   updatedAt?: Date;
   favorited?: boolean;
   favoritesCount?: number;
-  author?: UserEntity;
+  author?: UserData;
 }
 export interface ArticleRO {
   article: ArticleData;
