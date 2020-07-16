@@ -6,10 +6,16 @@ import { ArticleEntity } from 'src/entities/article.entity';
 import { UserEntity } from 'src/entities/user.entity';
 import { AuthModule } from 'src/auth/auth.module';
 import { CommentEntity } from 'src/entities/comment.entity';
+import { TagEntity } from 'src/entities/tag.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([ArticleEntity, UserEntity, CommentEntity]),
+    TypeOrmModule.forFeature([
+      ArticleEntity,
+      UserEntity,
+      CommentEntity,
+      TagEntity,
+    ]),
     AuthModule,
   ],
   providers: [ArticleService],

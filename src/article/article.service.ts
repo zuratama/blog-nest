@@ -19,6 +19,7 @@ import {
   CommentsRO,
 } from 'src/models/article.models';
 import { CommentEntity } from 'src/entities/comment.entity';
+import { TagEntity } from 'src/entities/tag.entity';
 
 @Injectable()
 export class ArticleService {
@@ -29,6 +30,8 @@ export class ArticleService {
     private readonly userRepo: Repository<UserEntity>,
     @InjectRepository(CommentEntity)
     private readonly commentRepo: Repository<CommentEntity>,
+    @InjectRepository(TagEntity)
+    private readonly tagRepo: Repository<TagEntity>,
   ) {}
 
   findById(id: number) {
@@ -130,6 +133,7 @@ export class ArticleService {
     const article = this.articleRepo.create(data);
     article.author = author;
     const newArticle = await article.save();
+    await this.upsertTags(data.tagList);
     return this.upgradeArticle(newArticle, author);
   }
 
@@ -269,5 +273,18 @@ export class ArticleService {
     });
 
     return articles.map(a => a.toArticle(relationUser));
+  }
+
+  private async upsertTags(tagList: string[]) {
+    const foundTags = await this.tagRepo.find({
+      where: tagList.map(t => ({ tag: t })),
+    });
+    const newTags = tagList.filter(t => !foundTags.map(t => t.tag).includes(t));
+    await this.tagRepo
+      .createQueryBuilder()
+      .insert()
+      .into(TagEntity)
+      .values(newTags.map(t => ({ tag: t })))
+      .execute();
   }
 }
