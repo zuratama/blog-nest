@@ -1,9 +1,10 @@
-import { Entity, Column, BeforeInsert, ManyToOne } from 'typeorm';
+import { Entity, Column, BeforeInsert, ManyToOne, OneToMany } from 'typeorm';
 import * as slugify from 'slug';
 import { classToPlain } from 'class-transformer';
 import { AbstractEntity } from './abstract-entity';
 import { UserEntity } from './user.entity';
 import { ArticleData } from 'src/models/article.models';
+import { CommentEntity } from './comment.entity';
 
 @Entity('article')
 export class ArticleEntity extends AbstractEntity {
@@ -32,6 +33,13 @@ export class ArticleEntity extends AbstractEntity {
   @Column('simple-array')
   tagList: string[];
 
+  @OneToMany(
+    _type => CommentEntity,
+    comment => comment.article,
+    { cascade: true },
+  )
+  comments: CommentEntity[];
+
   @BeforeInsert()
   generateSlug() {
     this.slug =
@@ -49,6 +57,7 @@ export class ArticleEntity extends AbstractEntity {
     if (user) {
       favorited = user.favorites.findIndex(a => a.id === this.id) != -1;
     }
+    delete this.author.email;
     const article: any = this.toJSON();
     return { ...article, favorited };
   }

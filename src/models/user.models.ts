@@ -5,6 +5,7 @@ import {
   MinLength,
   IsOptional,
 } from 'class-validator';
+import { AbstractData } from './abstract.models';
 
 export class LoginDTO {
   @IsEmail()
@@ -41,7 +42,7 @@ export interface AuthPayload {
   username: string;
 }
 
-interface UserSharedData {
+interface UserSharedData extends AbstractData {
   username: string;
   bio: string;
   image?: string;

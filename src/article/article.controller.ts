@@ -21,6 +21,9 @@ import {
   FindFeedQuery,
   ArticlesRO,
   ArticleRO,
+  CommentRO,
+  CreateCommentDTO,
+  CommentsRO,
 } from 'src/models/article.models';
 import { OptionalAuthGuard } from 'src/auth/optional-auth.guard';
 
@@ -107,5 +110,31 @@ export class ArticleController {
     @Param('slug') slug: string,
   ): Promise<ArticleRO> {
     return this.articleService.unfavorite(user, slug);
+  }
+
+  @Post('/:slug/comments')
+  @UseGuards(JwtAuthGuard)
+  async comment(
+    @User() user: UserEntity,
+    @Param('slug') slug: string,
+    @Body(ValidationPipe) data: { comment: CreateCommentDTO },
+  ): Promise<CommentRO> {
+    return this.articleService.comment(user, slug, data.comment);
+  }
+
+  @Get('/:slug/comments')
+  @UseGuards(OptionalAuthGuard)
+  async getComments(@Param('slug') slug: string): Promise<CommentsRO> {
+    return this.articleService.getComments(slug);
+  }
+
+  @Delete('/:slug/comments/:id')
+  @UseGuards(JwtAuthGuard)
+  async deleteComment(
+    @User() user: UserEntity,
+    @Param('slug') slug: string,
+    @Param('id') id: number,
+  ): Promise<ArticleRO> {
+    return this.articleService.deleteComment(user, slug, id);
   }
 }

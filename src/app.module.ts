@@ -6,6 +6,7 @@ import { DatabaseConnectionService } from './config/db-connection.service';
 import { AuthModule } from './auth/auth.module';
 import { UserModule } from './user/user.module';
 import { ArticleModule } from './article/article.module';
+import { TagModule } from './tag/tag.module';
 
 @Module({
   imports: [
@@ -15,6 +16,7 @@ import { ArticleModule } from './article/article.module';
     AuthModule,
     UserModule,
     ArticleModule,
+    TagModule,
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -14,7 +14,11 @@ import {
   FindFeedQuery,
   ArticlesRO,
   ArticleRO,
+  CreateCommentDTO,
+  CommentRO,
+  CommentsRO,
 } from 'src/models/article.models';
+import { CommentEntity } from 'src/entities/comment.entity';
 
 @Injectable()
 export class ArticleService {
@@ -23,6 +27,8 @@ export class ArticleService {
     private readonly articleRepo: Repository<ArticleEntity>,
     @InjectRepository(UserEntity)
     private readonly userRepo: Repository<UserEntity>,
+    @InjectRepository(CommentEntity)
+    private readonly commentRepo: Repository<CommentEntity>,
   ) {}
 
   findById(id: number) {
@@ -36,7 +42,7 @@ export class ArticleService {
   async getFromSlug(slug: string, currUser?: UserEntity) {
     const article = await this.findBySlug(slug);
     if (article) {
-      return this.getArticleData(article, currUser);
+      return this.upgradeArticle(article, currUser);
     }
 
     throw new NotFoundException();
@@ -85,7 +91,7 @@ export class ArticleService {
 
     const articles = await qb.getMany();
     return {
-      articles: await this.getListArticleData(articles, currUser),
+      articles: await this.upgradeListArticles(articles, currUser),
       articlesCount,
     };
   }
@@ -115,7 +121,7 @@ export class ArticleService {
 
     const articles = await qb.getMany();
     return {
-      articles: await this.getListArticleData(articles, currUser),
+      articles: await this.upgradeListArticles(articles, currUser),
       articlesCount,
     };
   }
@@ -124,7 +130,7 @@ export class ArticleService {
     const article = this.articleRepo.create(data);
     article.author = author;
     const newArticle = await article.save();
-    return this.getArticleData(newArticle, author);
+    return this.upgradeArticle(newArticle, author);
   }
 
   async updateArticle(
@@ -136,7 +142,7 @@ export class ArticleService {
     if (article && this.ensureOwnership(author, article)) {
       await this.articleRepo.update({ id: article.id }, data);
       const updated = await this.findById(article.id);
-      return this.getArticleData(updated, author);
+      return this.upgradeArticle(updated, author);
     }
 
     throw new UnauthorizedException();
@@ -146,7 +152,7 @@ export class ArticleService {
     const article = await this.findBySlug(slug);
     if (article && this.ensureOwnership(author, article)) {
       const deleted = await this.articleRepo.remove(article);
-      return this.getArticleData(deleted, author);
+      return this.upgradeArticle(deleted, author);
     }
 
     throw new UnauthorizedException();
@@ -197,11 +203,54 @@ export class ArticleService {
     return { article: article.toArticle(relationUser) };
   }
 
+  async getComments(slug: string): Promise<CommentsRO> {
+    const article = await this.articleRepo.findOne({
+      where: { slug },
+      relations: ['comments'],
+    });
+    return { comments: article.comments.map(c => c.toComment()) };
+  }
+
+  async comment(
+    user: UserEntity,
+    slug: string,
+    comment: CreateCommentDTO,
+  ): Promise<CommentRO> {
+    const article = await this.articleRepo.findOne({ where: { slug } });
+    if (!article) {
+      throw new NotFoundException('Article not found');
+    }
+
+    const created = await this.commentRepo.create(comment);
+    created.author = user;
+    created.article = article;
+    const newComment = await created.save();
+    return { comment: newComment.toComment() };
+  }
+
+  async deleteComment(
+    user: UserEntity,
+    slug: string,
+    id: number,
+  ): Promise<ArticleRO> {
+    const comment = await this.commentRepo.findOne({ where: { id } });
+    if (!comment) {
+      throw new NotFoundException('Comment not found');
+    }
+    if (user.id !== comment.author.id) {
+      throw new UnauthorizedException();
+    }
+
+    await this.commentRepo.remove(comment);
+    const article = await this.articleRepo.findOne({ where: { slug } });
+    return { article: await this.upgradeArticle(article, user) };
+  }
+
   private ensureOwnership(user: UserEntity, article: ArticleEntity): boolean {
     return article.author.id === user.id;
   }
 
-  private async getArticleData(article: ArticleEntity, user?: UserEntity) {
+  private async upgradeArticle(article: ArticleEntity, user?: UserEntity) {
     const relationUser = await this.userRepo.findOne({
       where: { id: user.id },
       relations: ['favorites'],
@@ -210,7 +259,7 @@ export class ArticleService {
     return article.toArticle(relationUser);
   }
 
-  private async getListArticleData(
+  private async upgradeListArticles(
     articles: ArticleEntity[],
     user?: UserEntity,
   ) {

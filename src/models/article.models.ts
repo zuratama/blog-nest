@@ -1,5 +1,6 @@
 import { IsArray, IsOptional, IsString } from 'class-validator';
-import { UserData } from './user.models';
+import { ProfileData } from './user.models';
+import { AbstractData } from './abstract.models';
 
 export class CreateArticleDTO {
   @IsString()
@@ -35,6 +36,11 @@ export class UpdateArticleDTO {
   tagList: string[];
 }
 
+export class CreateCommentDTO {
+  @IsString()
+  body: string;
+}
+
 export interface FindFeedQuery {
   limit?: number;
   offset?: number;
@@ -45,17 +51,15 @@ export interface FindAllQuery extends FindFeedQuery {
   favorited?: string;
 }
 
-export interface ArticleData {
+export interface ArticleData extends AbstractData {
   slug: string;
   title: string;
   description: string;
   body?: string;
   tagList?: string[];
-  createdAt?: Date;
-  updatedAt?: Date;
   favorited?: boolean;
   favoritesCount?: number;
-  author?: UserData;
+  author?: ProfileData;
 }
 export interface ArticleRO {
   article: ArticleData;
@@ -64,4 +68,16 @@ export interface ArticleRO {
 export interface ArticlesRO {
   articles: ArticleData[];
   articlesCount: number;
+}
+
+export interface CommentData extends AbstractData {
+  body: string;
+  author?: ProfileData;
+}
+
+export interface CommentRO {
+  comment: CommentData;
+}
+export interface CommentsRO {
+  comments: CommentData[];
 }

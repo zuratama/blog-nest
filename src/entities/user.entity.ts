@@ -12,6 +12,7 @@ import * as bcrypt from 'bcryptjs';
 import { AbstractEntity } from './abstract-entity';
 import { ArticleEntity } from './article.entity';
 import { ProfileData } from 'src/models/user.models';
+import { CommentEntity } from './comment.entity';
 
 @Entity('user')
 export class UserEntity extends AbstractEntity {
@@ -54,6 +55,13 @@ export class UserEntity extends AbstractEntity {
   @ManyToMany(_type => ArticleEntity)
   @JoinTable()
   favorites: ArticleEntity[];
+
+  @OneToMany(
+    _type => CommentEntity,
+    comment => comment.author,
+    { cascade: true },
+  )
+  comments: CommentEntity[];
 
   @BeforeInsert()
   async hashPassword() {
