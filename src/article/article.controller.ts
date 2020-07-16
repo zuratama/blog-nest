@@ -34,50 +34,53 @@ export class ArticleController {
   @Get()
   @UseGuards(OptionalAuthGuard)
   async findAll(
-    @User() user: UserEntity,
+    @User() currUser: UserEntity,
     @Query() query: FindAllQuery,
   ): Promise<ArticlesRO> {
-    return this.articleService.getAll(query, user);
+    return this.articleService.getAll(query, currUser);
   }
 
   @Get('feed')
   @UseGuards(JwtAuthGuard)
   async findFeed(
-    @User() user: UserEntity,
+    @User() currUser: UserEntity,
     @Query() query: FindFeedQuery,
   ): Promise<ArticlesRO> {
-    return this.articleService.getFeed(query, user);
+    return this.articleService.getFeed(query, currUser);
   }
 
   @Get(':slug')
   @UseGuards(OptionalAuthGuard)
   async findBySlug(
+    @User() currUser: UserEntity,
     @Param('slug') slug: string,
-    @User() user: UserEntity,
   ): Promise<ArticleRO> {
-    const article = await this.articleService.getFromSlug(slug, user);
+    const article = await this.articleService.getFromSlug(slug, currUser);
     return { article };
   }
 
   @Post()
   @UseGuards(JwtAuthGuard)
   async createArticle(
-    @User() user: UserEntity,
+    @User() currUser: UserEntity,
     @Body(ValidationPipe) data: { article: CreateArticleDTO },
   ): Promise<ArticleRO> {
-    const article = await this.articleService.createArticle(user, data.article);
+    const article = await this.articleService.createArticle(
+      currUser,
+      data.article,
+    );
     return { article };
   }
 
   @Put(':slug')
   @UseGuards(JwtAuthGuard)
   async updateArticle(
-    @User() user: UserEntity,
+    @User() currUser: UserEntity,
     @Param('slug') slug: string,
     @Body(ValidationPipe) data: { article: UpdateArticleDTO },
   ): Promise<ArticleRO> {
     const article = await this.articleService.updateArticle(
-      user,
+      currUser,
       slug,
       data.article,
     );
@@ -87,39 +90,39 @@ export class ArticleController {
   @Delete(':slug')
   @UseGuards(JwtAuthGuard)
   async deleteArticle(
-    @User() user: UserEntity,
+    @User() currUser: UserEntity,
     @Param('slug') slug: string,
   ): Promise<ArticleRO> {
-    const article = await this.articleService.deleteArticle(user, slug);
+    const article = await this.articleService.deleteArticle(currUser, slug);
     return { article };
   }
 
   @Post('/:slug/favorite')
   @UseGuards(JwtAuthGuard)
   async favoriteArticle(
-    @User() user: UserEntity,
+    @User() currUser: UserEntity,
     @Param('slug') slug: string,
   ): Promise<ArticleRO> {
-    return this.articleService.favorite(user, slug);
+    return this.articleService.favorite(currUser, slug);
   }
 
   @Delete('/:slug/favorite')
   @UseGuards(JwtAuthGuard)
   async unfavoriteArticle(
-    @User() user: UserEntity,
+    @User() currUser: UserEntity,
     @Param('slug') slug: string,
   ): Promise<ArticleRO> {
-    return this.articleService.unfavorite(user, slug);
+    return this.articleService.unfavorite(currUser, slug);
   }
 
   @Post('/:slug/comments')
   @UseGuards(JwtAuthGuard)
   async comment(
-    @User() user: UserEntity,
+    @User() currUser: UserEntity,
     @Param('slug') slug: string,
-    @Body(ValidationPipe) data: { comment: CreateCommentDTO },
+    @Body('comment', ValidationPipe) data: CreateCommentDTO,
   ): Promise<CommentRO> {
-    return this.articleService.comment(user, slug, data.comment);
+    return this.articleService.comment(currUser, slug, data);
   }
 
   @Get('/:slug/comments')
@@ -131,10 +134,10 @@ export class ArticleController {
   @Delete('/:slug/comments/:id')
   @UseGuards(JwtAuthGuard)
   async deleteComment(
-    @User() user: UserEntity,
+    @User() currUser: UserEntity,
     @Param('slug') slug: string,
     @Param('id') id: number,
   ): Promise<ArticleRO> {
-    return this.articleService.deleteComment(user, slug, id);
+    return this.articleService.deleteComment(currUser, slug, id);
   }
 }

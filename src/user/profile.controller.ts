@@ -21,29 +21,29 @@ export class ProfileController {
   @Get(':username')
   @UseGuards(OptionalAuthGuard)
   async findProfile(
-    @User() currentUser: UserEntity,
+    @User() currUser: UserEntity,
     @Param('username') username: string,
   ): Promise<ProfileRO> {
-    return this.userService.getFromUsername(username, currentUser);
+    return this.userService.getFromUsername(username, currUser);
   }
 
   @Post('/:username/follow')
   @HttpCode(200)
   @UseGuards(JwtAuthGuard)
   async followUser(
-    @User() currentUser: UserEntity,
+    @User() currUser: UserEntity,
     @Param('username') username: string,
   ): Promise<ProfileRO> {
-    return this.userService.followUser(currentUser, username);
+    return this.userService.followUser(currUser, username);
   }
 
   @Delete('/:username/follow')
   @HttpCode(200)
   @UseGuards(JwtAuthGuard)
   async unfollowUser(
+    @User() currUser: UserEntity,
     @Param('username') username: string,
-    @User() currentUser: UserEntity,
   ): Promise<ProfileRO> {
-    return this.userService.unfollowUser(currentUser, username);
+    return this.userService.unfollowUser(currUser, username);
   }
 }

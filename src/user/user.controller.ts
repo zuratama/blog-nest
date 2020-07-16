@@ -18,17 +18,17 @@ export class UserController {
 
   @Get()
   @UseGuards(JwtAuthGuard)
-  getCurrentUser(@User() user: UserEntity): UserRO {
-    return this.authService.get(user);
+  getCurrentUser(@User() currUser: UserEntity): UserRO {
+    return this.authService.get(currUser);
   }
 
   @Put()
   @UseGuards(JwtAuthGuard)
   async update(
-    @User() user: UserEntity,
-    @Body(new ValidationPipe({ transform: true, whitelist: true }))
+    @User() currUser: UserEntity,
+    @Body('user', new ValidationPipe({ transform: true, whitelist: true }))
     data: UpdateUserDTO,
   ): Promise<UserRO> {
-    return this.authService.update(user, data);
+    return this.authService.update(currUser, data);
   }
 }
