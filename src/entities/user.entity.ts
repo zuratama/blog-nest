@@ -38,10 +38,7 @@ export class UserEntity extends AbstractEntity {
     _type => UserEntity,
     user => user.followees,
   )
-  @JoinTable({
-    joinColumn: { name: 'follower_id' },
-    inverseJoinColumn: { name: 'target_id' },
-  })
+  @JoinTable()
   followers: UserEntity[];
 
   @ManyToMany(
@@ -57,10 +54,7 @@ export class UserEntity extends AbstractEntity {
   articles: ArticleEntity[];
 
   @ManyToMany(_type => ArticleEntity)
-  @JoinTable({
-    joinColumn: { name: 'user_id' },
-    inverseJoinColumn: { name: 'article_id' },
-  })
+  @JoinTable()
   favorites: ArticleEntity[];
 
   @OneToMany(

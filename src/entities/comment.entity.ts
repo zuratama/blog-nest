@@ -15,7 +15,6 @@ export class CommentEntity extends AbstractEntity {
     user => user.comments,
     { eager: true, nullable: false, onDelete: 'CASCADE' },
   )
-  @JoinColumn({ name: 'author_id' })
   author: UserEntity;
 
   @ManyToOne(
@@ -23,7 +22,6 @@ export class CommentEntity extends AbstractEntity {
     article => article.comments,
     { nullable: false, onDelete: 'CASCADE' },
   )
-  @JoinColumn({ name: 'article_id' })
   article: ArticleEntity;
 
   toJSON() {

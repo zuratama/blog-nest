@@ -32,13 +32,12 @@ export class ArticleEntity extends AbstractEntity {
     user => user.articles,
     { eager: true },
   )
-  @JoinColumn({ name: 'author_id' })
   author: UserEntity;
 
-  @Column({ default: 0, name: 'favorites_count' })
+  @Column({ default: 0 })
   favoritesCount: number;
 
-  @Column('simple-array', { name: 'tag_list' })
+  @Column('simple-array')
   tagList: string[];
 
   @OneToMany(
