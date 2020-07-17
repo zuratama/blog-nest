@@ -1,4 +1,4 @@
-import { Column, Entity, ManyToOne } from 'typeorm';
+import { Column, Entity, ManyToOne, JoinColumn } from 'typeorm';
 import { AbstractEntity } from './abstract-entity';
 import { ArticleEntity } from './article.entity';
 import { UserEntity } from './user.entity';
@@ -15,6 +15,7 @@ export class CommentEntity extends AbstractEntity {
     user => user.comments,
     { eager: true, nullable: false, onDelete: 'CASCADE' },
   )
+  @JoinColumn({ name: 'author_id' })
   author: UserEntity;
 
   @ManyToOne(
@@ -22,6 +23,7 @@ export class CommentEntity extends AbstractEntity {
     article => article.comments,
     { nullable: false, onDelete: 'CASCADE' },
   )
+  @JoinColumn({ name: 'article_id' })
   article: ArticleEntity;
 
   toJSON() {

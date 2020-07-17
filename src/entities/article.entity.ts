@@ -1,4 +1,11 @@
-import { Entity, Column, BeforeInsert, ManyToOne, OneToMany } from 'typeorm';
+import {
+  Entity,
+  Column,
+  BeforeInsert,
+  ManyToOne,
+  OneToMany,
+  JoinColumn,
+} from 'typeorm';
 import * as slugify from 'slug';
 import { classToPlain } from 'class-transformer';
 import { AbstractEntity } from './abstract-entity';
@@ -25,12 +32,13 @@ export class ArticleEntity extends AbstractEntity {
     user => user.articles,
     { eager: true },
   )
+  @JoinColumn({ name: 'author_id' })
   author: UserEntity;
 
-  @Column({ default: 0 })
+  @Column({ default: 0, name: 'favorites_count' })
   favoritesCount: number;
 
-  @Column('simple-array')
+  @Column('simple-array', { name: 'tag_list' })
   tagList: string[];
 
   @OneToMany(

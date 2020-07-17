@@ -5,6 +5,7 @@ import {
   JoinTable,
   ManyToMany,
   OneToMany,
+  JoinColumn,
 } from 'typeorm';
 import { Exclude, classToPlain } from 'class-transformer';
 import { IsEmail } from 'class-validator';
@@ -33,11 +34,14 @@ export class UserEntity extends AbstractEntity {
   @Column({ default: null, nullable: true })
   image: string | null;
 
-  @JoinTable()
   @ManyToMany(
     _type => UserEntity,
     user => user.followees,
   )
+  @JoinTable({
+    joinColumn: { name: 'follower_id' },
+    inverseJoinColumn: { name: 'target_id' },
+  })
   followers: UserEntity[];
 
   @ManyToMany(
@@ -53,7 +57,10 @@ export class UserEntity extends AbstractEntity {
   articles: ArticleEntity[];
 
   @ManyToMany(_type => ArticleEntity)
-  @JoinTable()
+  @JoinTable({
+    joinColumn: { name: 'user_id' },
+    inverseJoinColumn: { name: 'article_id' },
+  })
   favorites: ArticleEntity[];
 
   @OneToMany(
