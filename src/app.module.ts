@@ -1,12 +1,23 @@
 import { Module } from '@nestjs/common';
-import { MongooseModule } from '@nestjs/mongoose';
+import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import config from './config/keys';
-import { ItemsModule } from './items/items.module';
+import { DatabaseConnectionService } from './config/db-connection.service';
+import { AuthModule } from './auth/auth.module';
+import { UserModule } from './user/user.module';
+import { ArticleModule } from './article/article.module';
+import { TagModule } from './tag/tag.module';
 
 @Module({
-  imports: [ItemsModule, MongooseModule.forRoot(config.mongoURI)],
+  imports: [
+    TypeOrmModule.forRootAsync({
+      useClass: DatabaseConnectionService,
+    }),
+    AuthModule,
+    UserModule,
+    ArticleModule,
+    TagModule,
+  ],
   controllers: [AppController],
   providers: [AppService],
 })
