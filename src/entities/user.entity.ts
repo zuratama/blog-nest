@@ -38,7 +38,10 @@ export class UserEntity extends AbstractEntity {
     _type => UserEntity,
     user => user.followees,
   )
-  @JoinTable()
+  @JoinTable({
+    joinColumn: { name: 'followerId' },
+    inverseJoinColumn: { name: 'targetId' },
+  })
   followers: UserEntity[];
 
   @ManyToMany(
