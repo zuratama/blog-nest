@@ -8,20 +8,19 @@ import {
 import { AbstractData } from './abstract.models';
 
 export class LoginDTO {
-  @IsEmail()
+  @IsEmail({}, { message: 'Incorrect email address format' })
   @IsString()
-  @MinLength(4)
   email: string;
 
   @IsString()
-  @MinLength(4)
+  @MinLength(4, { message: 'Password length requires at least 4 characters' })
   password: string;
 }
 
 export class RegisterDTO extends LoginDTO {
   @IsString()
-  @MinLength(4)
-  @MaxLength(20)
+  @MinLength(4, { message: 'Username must have at least 4 characters' })
+  @MaxLength(20, { message: 'Username can have no more than 20 characters' })
   username: string;
 }
 
