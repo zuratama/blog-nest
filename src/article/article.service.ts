@@ -212,6 +212,10 @@ export class ArticleService {
       where: { slug },
       relations: ['comments'],
     });
+    if (!article) {
+      throw new NotFoundException('Article not found');
+    }
+
     return { comments: article.comments.map(c => c.toComment()) };
   }
 
@@ -280,6 +284,10 @@ export class ArticleService {
       where: tagList.map(t => ({ tag: t })),
     });
     const newTags = tagList.filter(t => !foundTags.map(t => t.tag).includes(t));
+    if (newTags.length <= 0) {
+      return;
+    }
+
     await this.tagRepo
       .createQueryBuilder()
       .insert()
